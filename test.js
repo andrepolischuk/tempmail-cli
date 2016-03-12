@@ -1,7 +1,12 @@
 import test from 'ava';
 import execa from 'execa';
 
-test(async t => {
+test('generate a new email address', async t => {
   const {stdout} = await execa('./cli.js');
   t.true(stdout.indexOf('@') > 0);
+});
+
+test('get messages', async t => {
+  const {stdout} = await execa('./cli.js', ['--get']);
+  t.is(stdout, 'There are no emails yet');
 });
