@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "CLI wrapper for temp-mail.ru",
   "bin": {
-    "tempmail": "index.js"
+    "tempmail": "cli.js"
   },
   "files": [
     "cli.js",
