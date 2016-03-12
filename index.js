@@ -2,7 +2,7 @@ import Configstore from 'configstore';
 import {bold, gray} from 'chalk';
 import meow from 'meow';
 import read from 'read-pkg';
-import {generateEmail, getInbox} from 'tempmail-wrapper/tempmail';
+import TempMail from 'tempmail.js';
 
 const cli = meow(`
     Usage
@@ -19,22 +19,13 @@ const cli = meow(`
 
 const pkg = read.sync();
 const options = new Configstore(pkg.name);
-let email = options.get('email');
+const account = new TempMail(!cli.flags.new && options.get('email'));
+options.set('email', account.address)
 
-if (!email || cli.flags.new) {
-  generateEmail().then(storeAddress);
+if (cli.flags.get) {
+  account.getMail().then(processData);
 } else {
-  storeAddress(email);
-}
-
-function storeAddress(email) {
-  options.set('email', email);
-
-  if (cli.flags.get) {
-    getInbox(email).then(processData);
-  } else {
-    console.log(email);
-  }
+  console.log(bold(account.address));
 }
 
 function processData(data) {

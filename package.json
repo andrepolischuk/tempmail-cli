@@ -41,7 +41,7 @@
     "configstore": "^2.0.0",
     "meow": "^3.7.0",
     "read-pkg": "^1.1.0",
-    "tempmail-wrapper": "github:xomyaq/tempmail"
+    "tempmail.js": "^0.2.1"
   },
   "devDependencies": {
     "ava": "^0.12.0",
