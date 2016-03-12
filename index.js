@@ -1,5 +1,5 @@
 import Configstore from 'configstore';
-import {bold, gray} from 'chalk';
+import {bold, gray, red} from 'chalk';
 import meow from 'meow';
 import read from 'read-pkg';
 import TempMail from 'tempmail.js';
@@ -30,7 +30,7 @@ if (cli.flags.get) {
 
 function processData(data) {
   if (data.error) {
-    console.log(data.error);
+    console.log(red(data.error));
   } else {
     const last = data[data.length - 1];
 
