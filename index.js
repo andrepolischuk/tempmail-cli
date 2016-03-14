@@ -1,8 +1,14 @@
 import Configstore from 'configstore';
-import {bold, gray, red} from 'chalk';
+import {dim, red} from 'chalk';
+import inquirer from 'inquirer';
 import meow from 'meow';
+import pager from 'default-pager';
 import read from 'read-pkg';
+import {Readable} from 'stream';
 import TempMail from 'tempmail.js';
+
+process.env.PAGER = process.env.PAGER || 'less';
+process.env.LESS  = process.env.LESS  || 'FRX';
 
 const cli = meow(`
     Usage
@@ -23,21 +29,44 @@ const account = new TempMail(!cli.flags.new && options.get('email'));
 options.set('email', account.address)
 
 if (cli.flags.get) {
-  account.getMail().then(processData);
+  account.getMail().then(listMessages);
 } else {
-  console.log(bold(account.address));
+  console.log(account.address);
 }
 
-function processData(data) {
-  if (data.error) {
-    console.log(red(data.error));
+function listMessages(messages) {
+  if (messages.error) {
+    console.log(red(messages.error));
   } else {
-    const last = data[data.length - 1];
+    const choices = messages
+      .sort((a, b) => b.mail_timestamp - a.mail_timestamp)
+      .map(message => ({
+        name: `${message.mail_from} ${dim(message.mail_subject)}`,
+        value: message
+      }));
 
-    console.log(`${bold(last.mail_from)}
-${gray(last.mail_subject)}
-
-${last.mail_text}
-    `);
+    inquirer.prompt([{
+      type: 'list',
+      name: 'message',
+      message: 'Your messages:',
+      choices: choices
+    }], answer => {
+      printMessage(answer.message, messages);
+    });
   }
+}
+
+function printMessage(message, messages) {
+  const stream = new Readable({encoding: 'utf8'});
+
+  stream.push(`${message.mail_from}
+${dim(message.mail_subject)}
+
+${message.mail_text}
+  `);
+
+  stream.push(null);
+  stream.pipe(pager(() => {
+    listMessages(messages);
+  }));
 }
