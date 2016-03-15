@@ -1,3 +1,4 @@
+import {cursorPrevLine, eraseLine} from 'ansi-escapes';
 import Configstore from 'configstore';
 import {dim, red} from 'chalk';
 import inquirer from 'inquirer';
@@ -73,6 +74,7 @@ ${message.mail_text}
 
   stream.push(null);
   stream.pipe(pager(() => {
+    cleanupOutput();
     listMessages(messages);
   }));
 }
@@ -81,4 +83,8 @@ function exitByQ() {
   process.stdin.on('keypress', (ch, key = {}) => {
     if (key.name === 'q') process.exit();
   });
+}
+
+function cleanupOutput() {
+  process.stdout.write(cursorPrevLine + eraseLine);
 }

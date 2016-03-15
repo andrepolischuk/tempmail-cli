@@ -37,6 +37,7 @@
   },
   "homepage": "https://github.com/andrepolischuk/tempmail-cli#readme",
   "dependencies": {
+    "ansi-escapes": "^1.3.0",
     "chalk": "^1.1.1",
     "configstore": "^2.0.0",
     "default-pager": "^1.1.0",
