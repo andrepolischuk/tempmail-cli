@@ -19,7 +19,7 @@ tempmail --help
     tempmail
 
   Options
-    --create, -c    Generate new email
+    --create, -c    Generate a new email address
     --get-mail, -g  Get messages
 
   Examples
