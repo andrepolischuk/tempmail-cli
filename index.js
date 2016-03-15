@@ -34,6 +34,7 @@ const account = new TempMail(!cli.flags.create && options.get('email'));
 options.set('email', account.address)
 
 if (cli.flags.getMail) {
+  exitByQ();
   account.getMail().then(listMessages);
 } else {
   console.log(account.address);
@@ -74,4 +75,10 @@ ${message.mail_text}
   stream.pipe(pager(() => {
     listMessages(messages);
   }));
+}
+
+function exitByQ() {
+  process.stdin.on('keypress', (ch, key = {}) => {
+    if (key.name === 'q') process.exit();
+  });
 }
