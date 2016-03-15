@@ -29,7 +29,7 @@ const cli = meow(`
   }
 });
 
-const pkg = read.sync();
+const pkg = read.sync(__dirname);
 const options = new Configstore(pkg.name);
 const account = new TempMail(!cli.flags.create && options.get('email'));
 options.set('email', account.address)
