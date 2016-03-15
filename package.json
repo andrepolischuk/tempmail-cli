@@ -14,7 +14,7 @@
   },
   "scripts": {
     "pretest": "npm run prepublish",
-    "test": "ava",
+    "test": "ava --serial",
     "prepublish": "babel index.js --out-file index.es5.js",
     "postpublish": "rimraf index.es5.js && git push --follow-tags"
   },
