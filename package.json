@@ -1,6 +1,6 @@
 {
   "name": "tempmail-cli",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "CLI wrapper for temp-mail.ru",
   "bin": {
     "tempmail": "cli.js"
