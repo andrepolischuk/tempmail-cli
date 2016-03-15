@@ -16,15 +16,15 @@ tempmail --help
   CLI wrapper for temp-mail.ru
 
   Usage
-    tempmail-cli
+    tempmail
 
   Options
     --create, -c    Generate new email
     --get-mail, -g  Get messages
 
   Examples
-    tempmail-cli
-    tempmail-cli --get-mail
+    tempmail
+    tempmail --get-mail
 ```
 
 ## License
