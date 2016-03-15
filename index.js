@@ -15,20 +15,25 @@ const cli = meow(`
       tempmail-cli
 
     Options
-      --new  Generate new email
-      --get  Get last message
+      --create, -c    Generate new email
+      --get-mail, -g  Get messages
 
     Examples
       tempmail-cli
-      tempmail-cli --get
-`);
+      tempmail-cli --get-mail
+`, {
+  alias: {
+    c: 'create',
+    g: 'get-mail'
+  }
+});
 
 const pkg = read.sync();
 const options = new Configstore(pkg.name);
-const account = new TempMail(!cli.flags.new && options.get('email'));
+const account = new TempMail(!cli.flags.create && options.get('email'));
 options.set('email', account.address)
 
-if (cli.flags.get) {
+if (cli.flags.getMail) {
   account.getMail().then(listMessages);
 } else {
   console.log(account.address);

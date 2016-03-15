@@ -7,6 +7,6 @@ test('generate a new email address', async t => {
 });
 
 test('get messages', async t => {
-  const {stdout} = await execa('./cli.js', ['--get']);
+  const {stdout} = await execa('./cli.js', ['--get-mail']);
   t.is(stdout, 'There are no emails yet');
 });
