@@ -6,7 +6,7 @@ import meow from 'meow';
 import pager from 'default-pager';
 import {Readable} from 'stream';
 import TempMail from 'tempmail.js';
-import toClipboard from 'to-clipboard';
+import {sync as copy} from 'to-clipboard';
 
 process.env.PAGER = process.env.PAGER || 'less';
 process.env.LESS  = process.env.LESS  || 'FRX';
@@ -37,9 +37,7 @@ if (cli.flags.getMail) {
   exitByQ();
   account.getMail().then(listMessages);
 } else {
-  toClipboard(account.address, () => {
-    console.log(account.address);
-  });
+  printAddress(account.address);
 }
 
 function listMessages(messages) {
@@ -90,4 +88,12 @@ function exitByQ() {
 
 function cleanupOutput() {
   process.stdout.write(cursorPrevLine + eraseLine);
+}
+
+function printAddress(address) {
+  console.log(address);
+
+  try {
+    copy(address);
+  } catch (err) {}
 }
