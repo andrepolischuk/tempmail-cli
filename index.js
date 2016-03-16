@@ -91,9 +91,10 @@ function cleanupOutput() {
 }
 
 function printAddress(address) {
-  console.log(address);
-
   try {
     copy(address);
-  } catch (err) {}
+    console.log(`${address} ${dim('(copied to clipboard)')}`);
+  } catch (err) {
+    console.log(address)
+  }
 }
