@@ -43,7 +43,8 @@
     "default-pager": "^1.1.0",
     "inquirer": "^0.12.0",
     "meow": "^3.7.0",
-    "tempmail.js": "^0.2.1"
+    "tempmail.js": "^0.2.1",
+    "to-clipboard": "^0.2.0"
   },
   "devDependencies": {
     "ava": "^0.12.0",
