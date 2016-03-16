@@ -4,7 +4,6 @@ import {dim, red} from 'chalk';
 import inquirer from 'inquirer';
 import meow from 'meow';
 import pager from 'default-pager';
-import read from 'read-pkg';
 import {Readable} from 'stream';
 import TempMail from 'tempmail.js';
 
@@ -29,8 +28,7 @@ const cli = meow(`
   }
 });
 
-const pkg = read.sync(__dirname);
-const options = new Configstore(pkg.name);
+const options = new Configstore(cli.pkg.name);
 const account = new TempMail(!cli.flags.create && options.get('email'));
 options.set('email', account.address)
 
