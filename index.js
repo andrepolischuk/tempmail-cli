@@ -46,22 +46,24 @@ function listMessages(messages) {
   if (messages.error) {
     console.log(red(messages.error));
   } else {
-    const choices = messages
-      .sort((a, b) => b.mail_timestamp - a.mail_timestamp)
-      .map(message => ({
-        name: `${message.mail_from} ${dim(message.mail_subject)}`,
-        value: message
-      }));
-
     inquirer.prompt([{
       type: 'list',
       name: 'message',
       message: 'Your messages:',
-      choices: choices
+      choices: generateChoices(messages)
     }], answer => {
       printMessage(answer.message, messages);
     });
   }
+}
+
+function generateChoices(messages) {
+  return messages
+    .sort((a, b) => b.mail_timestamp - a.mail_timestamp)
+    .map(message => ({
+      name: `${message.mail_from} ${dim(message.mail_subject)}`,
+      value: message
+    }));
 }
 
 function printMessage(message, messages) {
