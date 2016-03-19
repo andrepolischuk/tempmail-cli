@@ -37,26 +37,32 @@ options.set('email', account.address)
 
 if (cli.flags.getMail) {
   exitByQ();
-  account.getMail().then(listMessages);
+  getMessages(account, listMessages);
 } else if (cli.flags.deleteAll) {
-  account.getMail().then(deleteAllMessages);
+  getMessages(account, deleteMessages);
 } else {
   printAddress(account.address);
 }
 
-function listMessages(messages) {
-  if (messages.error) {
-    console.log(red(messages.error));
-  } else {
-    inquirer.prompt([{
-      type: 'list',
-      name: 'message',
-      message: 'Your messages:',
-      choices: generateChoices(messages)
-    }], answer => {
-      printMessage(answer.message, messages);
-    });
-  }
+function getMessages(account, fn) {
+  account.getMail().then(messages => {
+    if (messages.error) {
+      console.log(red(messages.error));
+    } else {
+      fn(...messages);
+    }
+  })
+}
+
+function listMessages(...messages) {
+  inquirer.prompt([{
+    type: 'list',
+    name: 'message',
+    message: 'Your messages:',
+    choices: generateChoices(messages)
+  }], answer => {
+    printMessage(answer.message, messages);
+  });
 }
 
 function generateChoices(messages) {
@@ -80,8 +86,27 @@ ${message.mail_text}
   stream.push(null);
   stream.pipe(pager(() => {
     cleanupOutput();
-    listMessages(messages);
+    listMessages(...messages);
   }));
+}
+
+function deleteMessages(message, ...messages) {
+  if (!message) {
+    console.log('All messages have been deleted');
+  } else {
+    account.deleteMessage(message.mail_id).then(() =>
+      setTimeout(() => deleteMessages(...messages), 1000)
+    );
+  }
+}
+
+function printAddress(address) {
+  try {
+    copy(address);
+    console.log(`${address} ${dim('(copied to clipboard)')}`);
+  } catch (err) {
+    console.log(address);
+  }
 }
 
 function exitByQ() {
@@ -92,33 +117,4 @@ function exitByQ() {
 
 function cleanupOutput() {
   process.stdout.write(cursorPrevLine + eraseLine);
-}
-
-function printAddress(address) {
-  try {
-    copy(address);
-    console.log(`${address} ${dim('(copied to clipboard)')}`);
-  } catch (err) {
-    console.log(address)
-  }
-}
-
-function deleteAllMessages(messages) {
-  if (messages.error) {
-    console.log(red(messages.error));
-  } else {
-    deleteMessagesSerially(...messages);
-  }
-}
-
-function deleteMessagesSerially(message, ...messages) {
-  if (!message) {
-    console.log('All messages have been deleted');
-  } else {
-    account.deleteMessage(message.mail_id).then(() => {
-      setTimeout(() => {
-        deleteMessagesSerially(...messages);
-      }, 1000);
-    });
-  }
 }
