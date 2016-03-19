@@ -16,8 +16,9 @@ const cli = meow(`
       tempmail
 
     Options
-      --create, -c    Generate a new email address
-      --get-mail, -g  Get messages
+      --create, -c      Generate a new email address
+      --get-mail, -g    Get messages
+      --delete-all, -D  Delete all messages
 
     Examples
       tempmail
@@ -25,7 +26,8 @@ const cli = meow(`
 `, {
   alias: {
     c: 'create',
-    g: 'get-mail'
+    g: 'get-mail',
+    D: 'delete-all'
   }
 });
 
@@ -36,6 +38,8 @@ options.set('email', account.address)
 if (cli.flags.getMail) {
   exitByQ();
   account.getMail().then(listMessages);
+} else if (cli.flags.deleteAll) {
+  account.getMail().then(deleteAllMessages);
 } else {
   printAddress(account.address);
 }
@@ -96,5 +100,25 @@ function printAddress(address) {
     console.log(`${address} ${dim('(copied to clipboard)')}`);
   } catch (err) {
     console.log(address)
+  }
+}
+
+function deleteAllMessages(messages) {
+  if (messages.error) {
+    console.log(red(messages.error));
+  } else {
+    deleteMessagesSerially(...messages);
+  }
+}
+
+function deleteMessagesSerially(message, ...messages) {
+  if (!message) {
+    console.log('All messages have been deleted');
+  } else {
+    account.deleteMessage(message.mail_id).then(() => {
+      setTimeout(() => {
+        deleteMessagesSerially(...messages);
+      }, 1000);
+    });
   }
 }
