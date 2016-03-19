@@ -19,8 +19,9 @@ tempmail --help
     tempmail
 
   Options
-    --create, -c    Generate a new email address
-    --get-mail, -g  Get messages
+    --create, -c      Generate a new email address
+    --get-mail, -g    Get messages
+    --delete-all, -D  Delete all messages
 
   Examples
     tempmail
