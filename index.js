@@ -1,6 +1,6 @@
 import {cursorPrevLine, eraseLine} from 'ansi-escapes';
 import Configstore from 'configstore';
-import {dim, red} from 'chalk';
+import {dim} from 'chalk';
 import inquirer from 'inquirer';
 import meow from 'meow';
 import pager from 'default-pager';
@@ -47,7 +47,7 @@ if (cli.flags.getMail) {
 function getMessages(account, fn) {
   account.getMail().then(messages => {
     if (messages.error) {
-      console.log(red(messages.error));
+      console.log(messages.error);
     } else {
       fn(...messages);
     }
