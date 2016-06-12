@@ -1,15 +1,16 @@
-import {cursorPrevLine, eraseLine} from 'ansi-escapes';
-import Configstore from 'configstore';
-import {dim} from 'chalk';
-import inquirer from 'inquirer';
+/* eslint-disable no-console */
 import meow from 'meow';
+import { dim } from 'chalk';
+import inquirer from 'inquirer';
+import { Readable } from 'stream';
 import pager from 'default-pager';
-import {Readable} from 'stream';
 import TempMail from 'tempmail.js';
-import {sync as copy} from 'to-clipboard';
+import Configstore from 'configstore';
+import { sync as copy } from 'to-clipboard';
+import { cursorPrevLine, eraseLine } from 'ansi-escapes';
 
 process.env.PAGER = process.env.PAGER || 'less';
-process.env.LESS  = process.env.LESS  || 'FRX';
+process.env.LESS = process.env.LESS || 'FRX';
 
 const cli = meow(`
     Usage
@@ -31,19 +32,6 @@ const cli = meow(`
   }
 });
 
-const options = new Configstore(cli.pkg.name);
-const account = new TempMail(!cli.flags.create && options.get('email'));
-options.set('email', account.address)
-
-if (cli.flags.getMail) {
-  exitByQ();
-  getMessages(account, listMessages);
-} else if (cli.flags.deleteAll) {
-  getMessages(account, deleteMessages);
-} else {
-  printAddress(account.address);
-}
-
 function getMessages(account, fn) {
   account.getMail().then(messages => {
     if (messages.error) {
@@ -51,18 +39,28 @@ function getMessages(account, fn) {
     } else {
       fn(...messages);
     }
-  })
+  });
 }
 
-function listMessages(...messages) {
-  inquirer.prompt([{
-    type: 'list',
-    name: 'message',
-    message: 'Your messages:',
-    choices: generateChoices(messages)
-  }], answer => {
-    printMessage(answer.message, messages);
-  });
+function cleanupOutput() {
+  process.stdout.write(cursorPrevLine + eraseLine);
+}
+
+function printMessage(message, messages) {
+  const stream = new Readable({ encoding: 'utf8' });
+
+  stream.push(`${message.mail_from}
+${dim(message.mail_subject)}
+
+${message.mail_text}
+  `);
+
+  stream.push(null);
+  stream.pipe(pager(() => {
+    cleanupOutput();
+    /* eslint-disable no-use-before-define */
+    listMessages(...messages);
+  }));
 }
 
 function generateChoices(messages) {
@@ -74,23 +72,18 @@ function generateChoices(messages) {
     }));
 }
 
-function printMessage(message, messages) {
-  const stream = new Readable({encoding: 'utf8'});
-
-  stream.push(`${message.mail_from}
-${dim(message.mail_subject)}
-
-${message.mail_text}
-  `);
-
-  stream.push(null);
-  stream.pipe(pager(() => {
-    cleanupOutput();
-    listMessages(...messages);
-  }));
+function listMessages(...messages) {
+  inquirer.prompt([ {
+    type: 'list',
+    name: 'message',
+    message: 'Your messages:',
+    choices: generateChoices(messages)
+  } ], answer => {
+    printMessage(answer.message, messages);
+  });
 }
 
-function deleteMessages(message, ...messages) {
+function deleteMessages(account, message, ...messages) {
   if (!message) {
     console.log('All messages have been deleted');
   } else {
@@ -115,6 +108,15 @@ function exitByQ() {
   });
 }
 
-function cleanupOutput() {
-  process.stdout.write(cursorPrevLine + eraseLine);
+const options = new Configstore(cli.pkg.name);
+const account = new TempMail(!cli.flags.create && options.get('email'));
+options.set('email', account.address);
+
+if (cli.flags.getMail) {
+  exitByQ();
+  getMessages(account, listMessages);
+} else if (cli.flags.deleteAll) {
+  getMessages(account, deleteMessages.bind(null, account));
+} else {
+  printAddress(account.address);
 }
