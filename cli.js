@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* eslint-disable strict, no-console */
+/* eslint-disable no-console */
 'use strict'
 const meow = require('meow')
 const dim = require('chalk').dim
@@ -39,7 +39,7 @@ function getMessages (account, fn) {
     if (messages.error) {
       console.log(messages.error)
     } else {
-      fn(...messages)
+      fn(messages)
     }
   })
 }
@@ -62,8 +62,7 @@ ${message.mail_text}
   stream.push(null)
   stream.pipe(pager(() => {
     cleanupOutput()
-    /* eslint-disable no-use-before-define */
-    listMessages(...messages)
+    listMessages(messages)
   }))
 }
 
@@ -76,7 +75,7 @@ function generateChoices (messages) {
     }))
 }
 
-function listMessages (...messages) {
+function listMessages (messages) {
   inquirer.prompt([{
     type: 'list',
     name: 'message',
@@ -87,13 +86,13 @@ function listMessages (...messages) {
   })
 }
 
-function deleteMessages (account, message, ...messages) {
-  if (!message) {
-    console.log('All messages have been deleted')
-  } else {
-    account.deleteMessage(message.mail_id).then(() =>
-      setTimeout(() => deleteMessages(...messages), 1000)
+function deleteMessages (account, messages) {
+  if (messages.length > 0) {
+    account.deleteMessage(messages[0].mail_id).then(() =>
+      setTimeout(() => deleteMessages(messages.filter((m, i) => i > 0)), 1000)
     )
+  } else {
+    console.log('All messages have been deleted')
   }
 }
 
@@ -107,8 +106,8 @@ function printAddress (address) {
 }
 
 function exitByQ () {
-  process.stdin.on('keypress', (ch, key = {}) => {
-    if (key.name === 'q') process.exit()
+  process.stdin.on('keypress', (ch, key) => {
+    if (key && key.name === 'q') process.exit()
   })
 }
 
