@@ -43,7 +43,7 @@
     "default-pager": "^1.1.0",
     "inquirer": "^1.0.3",
     "meow": "^3.7.0",
-    "tempmail.js": "^0.2.1",
+    "tempmail.js": "github:andrepolischuk/tempmail.js#021d85d",
     "to-clipboard": "^0.2.0"
   },
   "devDependencies": {

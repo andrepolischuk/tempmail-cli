@@ -78,7 +78,7 @@ function listMessages(...messages) {
     name: 'message',
     message: 'Your messages:',
     choices: generateChoices(messages)
-  } ], answer => {
+  } ]).then(answer => {
     printMessage(answer.message, messages);
   });
 }
@@ -109,14 +109,18 @@ function exitByQ() {
 }
 
 const options = new Configstore(cli.pkg.name);
-const account = new TempMail(!cli.flags.create && options.get('email'));
-options.set('email', account.address);
+const account = new TempMail();
+const storedAddress = !cli.flags.create && options.get('email');
 
-if (cli.flags.getMail) {
-  exitByQ();
-  getMessages(account, listMessages);
-} else if (cli.flags.deleteAll) {
-  getMessages(account, deleteMessages.bind(null, account));
-} else {
-  printAddress(account.address);
-}
+account.create(storedAddress).then(() => {
+  options.set('email', account.address);
+
+  if (cli.flags.getMail) {
+    exitByQ();
+    getMessages(account, listMessages);
+  } else if (cli.flags.deleteAll) {
+    getMessages(account, deleteMessages.bind(null, account));
+  } else {
+    printAddress(account.address);
+  }
+});
