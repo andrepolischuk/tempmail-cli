@@ -2,6 +2,7 @@
 /* eslint-disable no-console */
 'use strict'
 const meow = require('meow')
+const delay = require('delay')
 const dim = require('chalk').dim
 const inquirer = require('inquirer')
 const Readable = require('stream').Readable
@@ -34,36 +35,20 @@ const cli = meow(`
   }
 })
 
-function getMessages (account, fn) {
-  account.getMail().then(messages => {
-    if (messages.error) {
-      console.log(messages.error)
-    } else {
-      fn(messages)
-    }
+function printMessage (message) {
+  return new Promise(resolve => {
+    const stream = new Readable({
+      encoding: 'utf8'
+    })
+
+    stream.push(`${message.mail_from}\n${dim(message.mail_subject)}\n\n${message.mail_text}`)
+    stream.push(null)
+
+    stream.pipe(pager(() => {
+      process.stdout.write(ansi.cursorPrevLine + ansi.eraseLine)
+      resolve()
+    }))
   })
-}
-
-function cleanupOutput () {
-  process.stdout.write(ansi.cursorPrevLine + ansi.eraseLine)
-}
-
-function printMessage (message, messages) {
-  const stream = new Readable({
-    encoding: 'utf8'
-  })
-
-  stream.push(`${message.mail_from}
-${dim(message.mail_subject)}
-
-${message.mail_text}
-  `)
-
-  stream.push(null)
-  stream.pipe(pager(() => {
-    cleanupOutput()
-    listMessages(messages)
-  }))
 }
 
 function generateChoices (messages) {
@@ -76,24 +61,58 @@ function generateChoices (messages) {
 }
 
 function listMessages (messages) {
-  inquirer.prompt([{
-    type: 'list',
-    name: 'message',
-    message: 'Your messages:',
-    choices: generateChoices(messages)
-  }]).then(answer => {
-    printMessage(answer.message, messages)
+  return inquirer
+    .prompt([{
+      type: 'list',
+      name: 'message',
+      message: 'Your messages:',
+      choices: generateChoices(messages)
+    }])
+    .then(answer => printMessage(answer.message))
+    .then(() => listMessages(messages))
+}
+
+function getMail (account) {
+  return account.getMail().then(messages => {
+    if (messages.error) {
+      throw new Error(messages.error)
+    }
+
+    return messages
   })
 }
 
+function viewMail (account) {
+  process.stdin.on('keypress', (ch, key) => {
+    if (key && key.name === 'q') process.exit()
+  })
+
+  return getMail(account)
+    .then(listMessages)
+    .catch(err => {
+      console.log(err.message)
+    })
+}
+
 function deleteMessages (account, messages) {
-  if (messages.length > 0) {
-    account.deleteMessage(messages[0].mail_id).then(() =>
-      setTimeout(() => deleteMessages(messages.filter((m, i) => i > 0)), 1000)
-    )
-  } else {
-    console.log('All messages have been deleted')
+  if (messages.length === 0) {
+    return
   }
+
+  return account.deleteMessage(messages[0].mail_id)
+    .then(delay(1000))
+    .then(() => deleteMessages(account, messages.filter((m, i) => i > 0)))
+}
+
+function cleanupMail (account) {
+  return getMail(account)
+    .then(messages => deleteMessages(account, messages))
+    .then(() => {
+      console.log('All messages have been deleted')
+    })
+    .catch(err => {
+      console.log(err.messages)
+    })
 }
 
 function printAddress (address) {
@@ -105,12 +124,6 @@ function printAddress (address) {
   }
 }
 
-function exitByQ () {
-  process.stdin.on('keypress', (ch, key) => {
-    if (key && key.name === 'q') process.exit()
-  })
-}
-
 const options = new Configstore(cli.pkg.name)
 const account = new TempMail()
 const storedAddress = !cli.flags.create && options.get('email')
@@ -119,10 +132,9 @@ account.create(storedAddress).then(() => {
   options.set('email', account.address)
 
   if (cli.flags.getMail) {
-    exitByQ()
-    getMessages(account, listMessages)
+    viewMail(account)
   } else if (cli.flags.deleteAll) {
-    getMessages(account, deleteMessages.bind(null, account))
+    cleanupMail(account)
   } else {
     printAddress(account.address)
   }

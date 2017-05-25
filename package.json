@@ -38,6 +38,7 @@
     "chalk": "^1.1.1",
     "configstore": "^2.0.0",
     "default-pager": "^1.1.0",
+    "delay": "^2.0.0",
     "inquirer": "^1.0.3",
     "meow": "^3.7.0",
     "tempmail.js": "github:andrepolischuk/tempmail.js#021d85d",
